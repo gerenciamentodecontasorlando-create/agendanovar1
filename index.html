@@ -1,0 +1,3299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <title>Agenda Organizacional PWA</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIkFnZW5kYSBPcmdhbml6YWNpb25hbCIsCiAgInNob3J0X25hbWUiOiAiTWluaGFBZ2VuZGEiLAogICJkZXNjcmlwdGlvbiI6ICJBZ2VuZGEgcGVzc29hbCBwYXJhIG9yZ2FuaXphw6fDo28gZGUgdGFyZWZhcyBlIGFub3Rhw6fDtWVzIGRpw6FyaWFzIiwKICAic3RhcnRfdXJsIjogIi8iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiM2NjdlZWEiLAogICJ0aGVtZV9jb2xvciI6ICIjNjY3ZWVhIiwKICAib3JpZW50YXRpb24iOiAiYW55IiwKICAic2NvcGUiOiAiLyIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2UvcG5nO2Jhc2U2NCxpVkJPUncwS0dnb0FBQUFOU1VoRVVnQUFBQzBBQUFBdENBUUFBQUJYV0p5QUFBQUFYTlNSMElBcnM0YzNnQUFBQm1KUkVGVWdBQUg4QUFBQnlJQkFJQUJBQUFCQUFBQkFBQUJBQUFCQUFBQkFBQUJBQUFCQUFBQkFBQUJBQUFCQUFBQkFBQUJBQUFCQUFBQkFBQUJBQUFBQUFBT1dCa0FBQUFBQUVsRlRrOVdSMHRBQUFBQkpSVTVFcmtKZ2dnPT0iLAogICAgICAic2l6ZXMiOiAiNzJ4NzIiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9CiAgXSwKICAiY2F0ZWdvcmllcyI6IFsicHJvZHVjdGl2aXR5IiwgInV0aWxpdGllcyJdCn0=">
+    
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        /* ====== RESET E VARIÁVEIS ====== */
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f56565;
+            --success-color: #48bb78;
+            --warning-color: #ed8936;
+            --light-color: #f7fafc;
+            --dark-color: #2d3748;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --sidebar-width: 300px;
+            --backup-panel-width: 300px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        /* ====== LAYOUT PRINCIPAL ====== */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* ====== HEADER ====== */
+        .app-header {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            z-index: 100;
+            position: relative;
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .menu-toggle, .btn-icon {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: var(--transition);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-toggle:hover, .btn-icon:hover {
+            background: var(--light-color);
+        }
+
+        .app-title {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .current-date {
+            font-weight: 500;
+            color: var(--dark-color);
+            padding: 0.5rem 1rem;
+            background: var(--light-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* ====== CONTEÚDO PRINCIPAL ====== */
+        .main-content {
+            display: flex;
+            flex: 1;
+            padding: 1rem;
+            gap: 1rem;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* ====== SIDEBAR (CALENDÁRIO) ====== */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            overflow-y: auto;
+            transition: var(--transition);
+        }
+
+        .sidebar.collapsed {
+            margin-left: calc(-1 * var(--sidebar-width));
+            opacity: 0;
+        }
+
+        .calendar-container {
+            flex-shrink: 0;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-header button {
+            background: var(--light-color);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-header button:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        #currentMonth {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            text-align: center;
+            flex: 1;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-top: 1rem;
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            padding: 0.5rem 0;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            background: white;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background: var(--light-color);
+            transform: scale(1.05);
+        }
+
+        .calendar-day.selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .calendar-day.today {
+            border-color: var(--accent-color);
+        }
+
+        .calendar-day.has-entries {
+            font-weight: 700;
+        }
+
+        .calendar-day.has-entries::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-color);
+            border-radius: 50%;
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            cursor: default;
+            border: none;
+        }
+
+        .calendar-day.empty:hover {
+            background: transparent;
+            transform: none;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn-primary, .btn-secondary {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background: var(--light-color);
+            color: var(--dark-color);
+            border: 2px solid var(--light-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .recent-days {
+            margin-top: auto;
+        }
+
+        .recent-days h4 {
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+            font-size: 1rem;
+        }
+
+        .recent-days-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .recent-day {
+            padding: 0.75rem;
+            background: var(--light-color);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .recent-day:hover {
+            background: #e2e8f0;
+        }
+
+        .recent-day.today {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .recent-day.has-entries .fa-check-circle {
+            color: var(--success-color);
+        }
+
+        /* ====== ÁREA DO EDITOR ====== */
+        .editor-area {
+            flex: 1;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+            min-width: 0;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-color);
+            flex-shrink: 0;
+        }
+
+        .date-picker {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--light-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            background: var(--light-color);
+            color: var(--dark-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .date-picker:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-save, .btn-export, .btn-backup {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-save {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-export {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-backup {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-backup:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        /* ====== FERRAMENTAS DO EDITOR ====== */
+        .editor-tools {
+            background: var(--light-color);
+            padding: 0.75rem;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .toolbar button {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .toolbar button:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        /* ====== EDITOR RICO ====== */
+        .editor-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .rich-editor {
+            min-height: 200px;
+            padding: 1.5rem;
+            border: 2px solid var(--light-color);
+            border-radius: 8px;
+            outline: none;
+            overflow-y: auto;
+            line-height: 1.6;
+            font-size: 1rem;
+            color: var(--dark-color);
+            background: white;
+            transition: var(--transition);
+            flex: 1;
+        }
+
+        .rich-editor:empty:before {
+            content: attr(placeholder);
+            color: #a0aec0;
+            pointer-events: none;
+        }
+
+        .rich-editor:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .rich-editor h1, .rich-editor h2, .rich-editor h3 {
+            margin: 1rem 0 0.5rem 0;
+            color: var(--dark-color);
+        }
+
+        .rich-editor ul, .rich-editor ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rich-editor li {
+            margin-bottom: 0.25rem;
+        }
+
+        /* ====== TAGS ====== */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: var(--light-color);
+            border-radius: 8px;
+            min-height: 48px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .tag-text {
+            white-space: nowrap;
+        }
+
+        .delete-tag {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            opacity: 0.7;
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .delete-tag:hover {
+            opacity: 1;
+        }
+
+        /* ====== CHECKLIST ====== */
+        .checklist-container {
+            padding: 1rem;
+            background: var(--light-color);
+            border-radius: 8px;
+        }
+
+        .checklist-container h4 {
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checklist-items {
+            margin: 1rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .checklist-item:hover {
+            background: #f8fafc;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
+        .checklist-text {
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        .checklist-text.completed {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .delete-checklist {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            cursor: pointer;
+            opacity: 0.5;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-checklist:hover {
+            opacity: 1;
+            background: rgba(245, 101, 101, 0.1);
+        }
+
+        .add-checklist-item {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .add-checklist-item input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid var(--light-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .add-checklist-item input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .add-checklist-item button {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .add-checklist-item button:hover {
+            background: var(--secondary-color);
+        }
+
+        /* ====== ANEXOS ====== */
+        .attachments-container {
+            padding: 1rem;
+            background: var(--light-color);
+            border-radius: 8px;
+        }
+
+        .attachments-container h4 {
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .attachments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .attachment-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .attachment-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-color);
+        }
+
+        .attachment-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .attachment-info {
+            text-align: center;
+            width: 100%;
+        }
+
+        .attachment-name {
+            display: block;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+            word-break: break-word;
+        }
+
+        .attachment-size {
+            display: block;
+            font-size: 0.8rem;
+            color: #718096;
+        }
+
+        .attachment-delete {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(245, 101, 101, 0.1);
+            border: none;
+            color: var(--accent-color);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .attachment-item:hover .attachment-delete {
+            opacity: 1;
+        }
+
+        .attachment-delete:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ====== PAINEL DE BACKUP ====== */
+        .backup-panel {
+            width: var(--backup-panel-width);
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            overflow-y: auto;
+            transition: var(--transition);
+        }
+
+        .backup-header {
+            margin-bottom: 0.5rem;
+        }
+
+        .backup-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--dark-color);
+            font-size: 1.2rem;
+        }
+
+        .backup-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .backup-option {
+            padding: 1rem;
+            border: 2px solid var(--light-color);
+            background: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-align: left;
+        }
+
+        .backup-option:hover {
+            border-color: var(--primary-color);
+            background: var(--light-color);
+            transform: translateY(-1px);
+        }
+
+        .backup-history {
+            margin-top: 1rem;
+        }
+
+        .backup-history h4 {
+            margin-bottom: 0.75rem;
+            color: var(--dark-color);
+            font-size: 1rem;
+        }
+
+        .backup-history-item {
+            padding: 0.75rem;
+            background: var(--light-color);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .backup-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .backup-date {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .backup-size {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+
+        .restore-backup {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .restore-backup:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .no-backups {
+            text-align: center;
+            color: #a0aec0;
+            font-style: italic;
+            padding: 1rem;
+        }
+
+        /* ====== INFORMAÇÕES DE ARMAZENAMENTO ====== */
+        .storage-info {
+            padding: 1rem;
+            background: var(--light-color);
+            border-radius: 8px;
+        }
+
+        .storage-info h4 {
+            margin-bottom: 0.75rem;
+            color: var(--dark-color);
+            font-size: 1rem;
+        }
+
+        .storage-bar {
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .storage-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        #storageText {
+            font-size: 0.85rem;
+            color: #718096;
+            text-align: center;
+        }
+
+        /* ====== CONFIGURAÇÕES ====== */
+        .settings {
+            margin-top: auto;
+        }
+
+        .settings h4 {
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+            font-size: 1rem;
+        }
+
+        .setting-item {
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            background: var(--light-color);
+            border-radius: 6px;
+        }
+
+        .setting-item label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .setting-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+
+        .setting-item select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid var(--light-color);
+            border-radius: 6px;
+            background: white;
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        /* ====== MODAIS ====== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--light-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-results {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .search-result {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .search-result:hover {
+            background: var(--light-color);
+        }
+
+        .search-result h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .search-result .preview {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-result .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        .search-result .tag {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 2rem;
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .error {
+            color: var(--accent-color);
+            text-align: center;
+            padding: 1rem;
+        }
+
+        /* ====== NOTIFICAÇÕES TOAST ====== */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 300px;
+        }
+
+        .toast {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .toast-warning {
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .toast-info {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .toast i {
+            font-size: 1.2rem;
+        }
+
+        .toast-success i {
+            color: var(--success-color);
+        }
+
+        .toast-error i {
+            color: var(--accent-color);
+        }
+
+        .toast-warning i {
+            color: var(--warning-color);
+        }
+
+        .toast-info i {
+            color: var(--primary-color);
+        }
+
+        .toast span {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        /* ====== PROMPT DE INSTALAÇÃO ====== */
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1000;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .install-prompt p {
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        .install-prompt button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        #installBtn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        #installBtn:hover {
+            background: var(--secondary-color);
+        }
+
+        #dismissInstall {
+            background: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        #dismissInstall:hover {
+            background: #e2e8f0;
+        }
+
+        /* ====== NOTIFICAÇÃO DE ATUALIZAÇÃO ====== */
+        .update-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        /* ====== TEMA ESCURO ====== */
+        body.dark-theme {
+            --light-color: #1a202c;
+            --dark-color: #f7fafc;
+            background: linear-gradient(135deg, #1e3a8a 0%, #4c1d95 100%);
+        }
+
+        body.dark-theme .app-header,
+        body.dark-theme .sidebar,
+        body.dark-theme .editor-area,
+        body.dark-theme .backup-panel,
+        body.dark-theme .modal-content {
+            background: #2d3748;
+            color: var(--dark-color);
+        }
+
+        body.dark-theme .rich-editor,
+        body.dark-theme .date-picker,
+        body.dark-theme .toolbar button,
+        body.dark-theme .checklist-item,
+        body.dark-theme .attachment-item {
+            background: #4a5568;
+            color: var(--dark-color);
+            border-color: #4a5568;
+        }
+
+        body.dark-theme .rich-editor:focus,
+        body.dark-theme .date-picker:focus,
+        body.dark-theme .add-checklist-item input:focus {
+            border-color: var(--primary-color);
+        }
+
+        body.dark-theme .attachments-container,
+        body.dark-theme .checklist-container,
+        body.dark-theme .editor-tools,
+        body.dark-theme .tags-container {
+            background: #2d3748;
+        }
+
+        body.dark-theme .recent-day {
+            background: #4a5568;
+            color: var(--dark-color);
+        }
+
+        body.dark-theme .recent-day:hover {
+            background: #5a6578;
+        }
+
+        body.dark-theme .recent-day.today {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        body.dark-theme .btn-secondary {
+            background: #4a5568;
+            border-color: #4a5568;
+            color: var(--dark-color);
+        }
+
+        body.dark-theme .backup-option {
+            border-color: #4a5568;
+            color: var(--dark-color);
+        }
+
+        body.dark-theme .backup-option:hover {
+            background: #4a5568;
+        }
+
+        body.dark-theme .backup-history-item,
+        body.dark-theme .setting-item,
+        body.dark-theme .storage-info {
+            background: #4a5568;
+            color: var(--dark-color);
+        }
+
+        body.dark-theme .storage-bar {
+            background: #2d3748;
+        }
+
+        body.dark-theme .toast {
+            background: #2d3748;
+            color: var(--dark-color);
+        }
+
+        body.dark-theme .install-prompt,
+        body.dark-theme .update-notification {
+            background: #2d3748;
+            color: var(--dark-color);
+        }
+
+        /* ====== RESPONSIVIDADE ====== */
+        @media (max-width: 1200px) {
+            .sidebar, .backup-panel {
+                width: 280px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .main-content {
+                flex-wrap: wrap;
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-height: 400px;
+                order: 1;
+            }
+            
+            .editor-area {
+                order: 2;
+                min-width: 100%;
+            }
+            
+            .backup-panel {
+                width: 100%;
+                max-height: 400px;
+                order: 3;
+            }
+            
+            .sidebar.collapsed {
+                margin-left: 0;
+                opacity: 1;
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .header-left, .header-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .editor-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .editor-actions {
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .btn-save, .btn-export, .btn-backup {
+                flex: 1;
+                min-width: 120px;
+                justify-content: center;
+            }
+            
+            .attachments-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            :root {
+                --border-radius: 8px;
+            }
+            
+            .main-content {
+                padding: 0.5rem;
+            }
+            
+            .sidebar, .editor-area, .backup-panel {
+                padding: 1rem;
+            }
+            
+            .toolbar {
+                justify-content: center;
+            }
+            
+            .toolbar button {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .btn-save, .btn-export, .btn-backup {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* ====== BARRA DE ROLAGEM PERSONALIZADA ====== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--light-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+        }
+
+        body.dark-theme ::-webkit-scrollbar-track {
+            background: #4a5568;
+        }
+
+        body.dark-theme ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+        }
+
+        /* ====== SELEÇÃO DE TEXTO ====== */
+        ::selection {
+            background: rgba(102, 126, 234, 0.3);
+            color: inherit;
+        }
+
+        /* ====== ANIMAÇÕES ====== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .app-container {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* ====== ESTADOS DE CARREGAMENTO ====== */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="app-title">Agenda Organizacional</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn-icon" id="searchBtn">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="btn-icon" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="current-date" id="currentDate">
+                    <!-- Data atual será inserida via JS -->
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                        <h3 id="currentMonth"></h3>
+                        <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendário gerado via JS -->
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <button class="btn-primary" id="newEntry">
+                        <i class="fas fa-plus"></i> Nova Entrada
+                    </button>
+                    <button class="btn-secondary" id="todayBtn">
+                        <i class="fas fa-calendar-day"></i> Hoje
+                    </button>
+                </div>
+
+                <div class="recent-days">
+                    <h4>Dias Recentes</h4>
+                    <div class="recent-days-list" id="recentDaysList">
+                        <!-- Dias recentes serão inseridos via JS -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Editor Area -->
+            <main class="editor-area">
+                <div class="editor-header">
+                    <input type="date" id="selectedDate" class="date-picker">
+                    <div class="editor-actions">
+                        <button class="btn-save" id="saveEntry">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                        <button class="btn-export" id="exportPDF">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button class="btn-backup" id="backupNow">
+                            <i class="fas fa-database"></i> Backup
+                        </button>
+                    </div>
+                </div>
+
+                <div class="editor-tools">
+                    <div class="toolbar">
+                        <button data-command="bold" title="Negrito"><i class="fas fa-bold"></i></button>
+                        <button data-command="italic" title="Itálico"><i class="fas fa-italic"></i></button>
+                        <button data-command="insertUnorderedList" title="Lista com marcadores">
+                            <i class="fas fa-list-ul"></i>
+                        </button>
+                        <button data-command="insertOrderedList" title="Lista numerada">
+                            <i class="fas fa-list-ol"></i>
+                        </button>
+                        <button id="addChecklistBtn" title="Adicionar checklist">
+                            <i class="fas fa-tasks"></i>
+                        </button>
+                        <button id="addTagBtn" title="Adicionar tag">
+                            <i class="fas fa-tag"></i>
+                        </button>
+                        <button id="attachFileBtn" title="Anexar arquivo">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="editor-content">
+                    <div class="tags-container" id="tagsContainer">
+                        <!-- Tags serão adicionadas aqui -->
+                    </div>
+                    
+                    <div contenteditable="true" class="rich-editor" id="richEditor"
+                         placeholder="Comece a escrever suas anotações para hoje...">
+                    </div>
+
+                    <div class="attachments-container" id="attachmentsContainer">
+                        <h4><i class="fas fa-paperclip"></i> Anexos</h4>
+                        <div class="attachments-grid" id="attachmentsGrid">
+                            <!-- Anexos serão mostrados aqui -->
+                        </div>
+                    </div>
+
+                    <div class="checklist-container" id="checklistContainer">
+                        <h4><i class="fas fa-tasks"></i> Checklist do Dia</h4>
+                        <div class="checklist-items" id="checklistItems">
+                            <!-- Itens da checklist -->
+                        </div>
+                        <div class="add-checklist-item">
+                            <input type="text" id="newChecklistItem" 
+                                   placeholder="Adicionar nova tarefa...">
+                            <button id="addChecklistItemBtn">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Backup Panel -->
+            <aside class="backup-panel" id="backupPanel">
+                <div class="backup-header">
+                    <h3><i class="fas fa-database"></i> Backup & Exportação</h3>
+                </div>
+                
+                <div class="backup-options">
+                    <button class="backup-option" id="exportJSON">
+                        <i class="fas fa-code"></i>
+                        <span>Exportar JSON</span>
+                    </button>
+                    <button class="backup-option" id="exportCSV">
+                        <i class="fas fa-table"></i>
+                        <span>Exportar CSV</span>
+                    </button>
+                    <button class="backup-option" id="importData">
+                        <i class="fas fa-upload"></i>
+                        <span>Importar Dados</span>
+                    </button>
+                </div>
+
+                <div class="backup-history">
+                    <h4>Histórico de Backups</h4>
+                    <div class="history-list" id="backupHistory">
+                        <!-- Histórico será preenchido via JS -->
+                    </div>
+                </div>
+
+                <div class="storage-info">
+                    <h4>Uso de Armazenamento</h4>
+                    <div class="storage-bar">
+                        <div class="storage-progress" id="storageProgress"></div>
+                    </div>
+                    <p id="storageText">0 MB usados de 0 MB</p>
+                </div>
+
+                <div class="settings">
+                    <h4>Configurações</h4>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="autoBackup" checked>
+                            Backup Automático Diário
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="notifications" checked>
+                            Notificações Diárias
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label>Exportar PDF com:</label>
+                        <select id="pdfQuality">
+                            <option value="80">80% do conteúdo</option>
+                            <option value="90">90% do conteúdo</option>
+                            <option value="100">Conteúdo completo</option>
+                        </select>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Search Modal -->
+        <div class="modal" id="searchModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Buscar nas Anotações</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="searchInput" placeholder="Digite para buscar...">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- Install Prompt -->
+        <div class="install-prompt" id="installPrompt">
+            <p>Instale este app para acesso offline!</p>
+            <button id="installBtn">Instalar</button>
+            <button id="dismissInstall">Depois</button>
+        </div>
+
+        <!-- File Input (hidden) -->
+        <input type="file" id="fileInput" multiple accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.pptx" style="display: none;">
+    </div>
+
+    <script>
+        // ==============================================
+        // AGENDA ORGANIZACIONAL PWA - APLICAÇÃO COMPLETA
+        // ==============================================
+
+        'use strict';
+
+        class AgendaApp {
+            constructor() {
+                this.state = {
+                    currentDate: new Date(),
+                    selectedDate: new Date(),
+                    entries: new Map(),
+                    tags: new Set(),
+                    settings: this.loadSettings(),
+                    isOnline: navigator.onLine,
+                    db: null,
+                    editorContent: '',
+                    ui: {
+                        sidebarOpen: true,
+                        backupPanelOpen: true,
+                        theme: 'light'
+                    }
+                };
+
+                this.elements = {};
+                this.deferredPrompt = null;
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Inicializando Agenda Organizacional PWA...');
+                
+                try {
+                    this.cacheElements();
+                    await this.initDatabase();
+                    await this.loadAllData();
+                    this.setupUI();
+                    this.setupEvents();
+                    await this.setupServiceWorker();
+                    this.setupPWAInstall();
+                    
+                    console.log('✅ Aplicação inicializada com sucesso!');
+                    this.showToast('Agenda carregada com sucesso!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Erro ao inicializar aplicação:', error);
+                    this.showToast('Erro ao carregar agenda', 'error');
+                }
+            }
+
+            cacheElements() {
+                const ids = [
+                    'menuToggle', 'currentDate', 'themeToggle', 'searchBtn',
+                    'sidebar', 'calendarGrid', 'currentMonth', 'prevMonth',
+                    'nextMonth', 'todayBtn', 'newEntry', 'recentDaysList',
+                    'selectedDate', 'richEditor', 'saveEntry', 'exportPDF',
+                    'backupNow', 'tagsContainer', 'attachmentsContainer',
+                    'attachmentsGrid', 'checklistContainer', 'checklistItems',
+                    'newChecklistItem', 'addChecklistItemBtn', 'addChecklistBtn',
+                    'addTagBtn', 'attachFileBtn', 'exportJSON', 'exportCSV',
+                    'importData', 'backupHistory', 'storageProgress', 'storageText',
+                    'autoBackup', 'notifications', 'pdfQuality', 'searchModal',
+                    'searchInput', 'searchResults', 'toastContainer', 'installPrompt',
+                    'installBtn', 'dismissInstall', 'fileInput'
+                ];
+                
+                ids.forEach(id => {
+                    this.elements[id] = document.getElementById(id);
+                });
+            }
+
+            async initDatabase() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open('AgendaPWA', 1);
+                    
+                    request.onerror = () => reject(request.error);
+                    
+                    request.onsuccess = () => {
+                        this.state.db = request.result;
+                        console.log('📊 Banco de dados inicializado');
+                        resolve();
+                    };
+                    
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        
+                        if (!db.objectStoreNames.contains('entries')) {
+                            const store = db.createObjectStore('entries', { keyPath: 'id' });
+                            store.createIndex('date', 'date');
+                            store.createIndex('tags', 'tags', { multiEntry: true });
+                        }
+                        
+                        if (!db.objectStoreNames.contains('files')) {
+                            const store = db.createObjectStore('files', { keyPath: 'id', autoIncrement: true });
+                            store.createIndex('date', 'date');
+                        }
+                        
+                        if (!db.objectStoreNames.contains('backups')) {
+                            const store = db.createObjectStore('backups', { keyPath: 'id', autoIncrement: true });
+                            store.createIndex('date', 'date');
+                        }
+                        
+                        console.log('🔄 Estrutura do banco de dados criada');
+                    };
+                });
+            }
+
+            async loadAllData() {
+                const startDate = new Date();
+                startDate.setDate(1);
+                startDate.setMonth(startDate.getMonth() - 1);
+                
+                const endDate = new Date();
+                endDate.setMonth(endDate.getMonth() + 1);
+                endDate.setDate(0);
+                
+                const entries = await this.getEntriesByDateRange(startDate, endDate);
+                entries.forEach(entry => {
+                    this.state.entries.set(entry.id, entry);
+                    if (entry.tags) {
+                        entry.tags.forEach(tag => this.state.tags.add(tag));
+                    }
+                });
+                
+                console.log(`📚 ${entries.length} entradas carregadas`);
+            }
+
+            setupUI() {
+                this.applyTheme(this.state.settings.theme || 'light');
+                this.updateCurrentDate();
+                this.renderCalendar();
+                this.loadRecentDays();
+                this.loadTodayEntry();
+                this.updateStorageInfo();
+                
+                if (this.elements.richEditor) {
+                    this.elements.richEditor.setAttribute('placeholder',
+                        'Comece a escrever suas anotações para hoje...\n\n• Use #tags para organizar\n• Clique em ✓ para checklist\n• Anexe arquivos com 📎');
+                }
+            }
+
+            setupEvents() {
+                // Navegação do calendário
+                this.elements.prevMonth?.addEventListener('click', () => this.navigateMonth(-1));
+                this.elements.nextMonth?.addEventListener('click', () => this.navigateMonth(1));
+                this.elements.todayBtn?.addEventListener('click', () => this.goToToday());
+                this.elements.newEntry?.addEventListener('click', () => this.createNewEntry());
+                
+                // Editor
+                this.elements.selectedDate?.addEventListener('change', (e) => {
+                    this.selectDate(new Date(e.target.value));
+                });
+                
+                this.elements.saveEntry?.addEventListener('click', () => this.saveCurrentEntry());
+                this.elements.exportPDF?.addEventListener('click', () => this.exportToPDF());
+                this.elements.backupNow?.addEventListener('click', () => this.createBackup());
+                
+                // Checklist
+                this.elements.newChecklistItem?.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addChecklistItem();
+                });
+                
+                this.elements.addChecklistItemBtn?.addEventListener('click', () => this.addChecklistItem());
+                this.elements.addChecklistBtn?.addEventListener('click', () => this.showAddChecklistDialog());
+                
+                // Tags e Anexos
+                this.elements.addTagBtn?.addEventListener('click', () => this.showAddTagDialog());
+                this.elements.attachFileBtn?.addEventListener('click', () => this.attachFile());
+                this.elements.fileInput?.addEventListener('change', (e) => this.handleFileUpload(e.target.files));
+                
+                // Backup
+                this.elements.exportJSON?.addEventListener('click', () => this.exportToJSON());
+                this.elements.exportCSV?.addEventListener('click', () => this.exportToCSV());
+                this.elements.importData?.addEventListener('click', () => this.importData());
+                
+                // Configurações
+                this.elements.autoBackup?.addEventListener('change', (e) => {
+                    this.state.settings.autoBackup = e.target.checked;
+                    this.saveSettings();
+                });
+                
+                this.elements.notifications?.addEventListener('change', (e) => {
+                    this.state.settings.notifications = e.target.checked;
+                    this.saveSettings();
+                });
+                
+                this.elements.pdfQuality?.addEventListener('change', (e) => {
+                    this.state.settings.pdfQuality = e.target.value;
+                    this.saveSettings();
+                });
+                
+                // Tema
+                this.elements.themeToggle?.addEventListener('click', () => {
+                    const newTheme = this.state.ui.theme === 'light' ? 'dark' : 'light';
+                    this.applyTheme(newTheme);
+                });
+                
+                // Busca
+                this.elements.searchBtn?.addEventListener('click', () => this.openSearch());
+                
+                // Menu
+                this.elements.menuToggle?.addEventListener('click', () => this.toggleSidebar());
+                
+                // Auto-save
+                let autoSaveTimeout;
+                this.elements.richEditor?.addEventListener('input', () => {
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(() => this.autoSave(), 3000);
+                });
+                
+                // Eventos globais
+                window.addEventListener('online', () => {
+                    this.state.isOnline = true;
+                    this.showToast('Conectado à internet', 'success');
+                });
+                
+                window.addEventListener('offline', () => {
+                    this.state.isOnline = false;
+                    this.showToast('Modo offline ativado', 'warning');
+                });
+            }
+
+            // ========== FUNÇÕES DO CALENDÁRIO ==========
+            renderCalendar() {
+                const year = this.state.currentDate.getFullYear();
+                const month = this.state.currentDate.getMonth();
+                
+                const monthNames = [
+                    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+                ];
+                
+                if (this.elements.currentMonth) {
+                    this.elements.currentMonth.textContent = `${monthNames[month]} ${year}`;
+                }
+                
+                if (!this.elements.calendarGrid) return;
+                
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                const startingDay = firstDay.getDay();
+                
+                this.elements.calendarGrid.innerHTML = '';
+                
+                // Cabeçalhos dos dias
+                const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+                weekdays.forEach(day => {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-weekday';
+                    dayElement.textContent = day;
+                    this.elements.calendarGrid.appendChild(dayElement);
+                });
+                
+                // Espaços vazios
+                for (let i = 0; i < startingDay; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.className = 'calendar-day empty';
+                    this.elements.calendarGrid.appendChild(emptyDay);
+                }
+                
+                // Dias do mês
+                const today = new Date();
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(year, month, day);
+                    const dateKey = this.formatDateKey(date);
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day';
+                    dayElement.textContent = day;
+                    dayElement.dataset.date = dateKey;
+                    
+                    // Verificar se é hoje
+                    if (date.getDate() === today.getDate() &&
+                        date.getMonth() === today.getMonth() &&
+                        date.getFullYear() === today.getFullYear()) {
+                        dayElement.classList.add('today');
+                    }
+                    
+                    // Verificar se está selecionado
+                    if (this.isSameDay(date, this.state.selectedDate)) {
+                        dayElement.classList.add('selected');
+                    }
+                    
+                    // Verificar se tem entradas
+                    if (this.hasEntriesForDate(dateKey)) {
+                        dayElement.classList.add('has-entries');
+                    }
+                    
+                    dayElement.addEventListener('click', () => {
+                        this.selectDate(date);
+                    });
+                    
+                    this.elements.calendarGrid.appendChild(dayElement);
+                }
+            }
+
+            navigateMonth(direction) {
+                const newDate = new Date(this.state.currentDate);
+                newDate.setMonth(newDate.getMonth() + direction);
+                this.state.currentDate = newDate;
+                this.renderCalendar();
+                this.loadRecentDays();
+            }
+
+            // ========== FUNÇÕES DE DATA ==========
+            selectDate(date) {
+                this.state.selectedDate = date;
+                
+                if (this.elements.selectedDate) {
+                    const yyyy = date.getFullYear();
+                    const mm = String(date.getMonth() + 1).padStart(2, '0');
+                    const dd = String(date.getDate()).padStart(2, '0');
+                    this.elements.selectedDate.value = `${yyyy}-${mm}-${dd}`;
+                }
+                
+                this.updateCurrentDate();
+                this.renderCalendar();
+                this.loadEntryForDate(date);
+            }
+
+            goToToday() {
+                const today = new Date();
+                this.state.currentDate = today;
+                this.selectDate(today);
+                this.showToast('Indo para hoje', 'info');
+            }
+
+            createNewEntry() {
+                if (this.elements.richEditor) {
+                    this.elements.richEditor.innerHTML = '';
+                    this.showToast('Nova entrada criada', 'info');
+                }
+            }
+
+            updateCurrentDate() {
+                if (!this.elements.currentDate) return;
+                
+                const options = {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                };
+                
+                const dateStr = this.state.selectedDate.toLocaleDateString('pt-BR', options);
+                this.elements.currentDate.textContent = dateStr;
+            }
+
+            loadRecentDays() {
+                if (!this.elements.recentDaysList) return;
+                
+                const recentDays = [];
+                const today = new Date();
+                
+                for (let i = 0; i < 5; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() - i);
+                    recentDays.push({
+                        date,
+                        formatted: date.toLocaleDateString('pt-BR'),
+                        dayName: this.getDayName(date.getDay()),
+                        hasEntries: this.hasEntriesForDate(this.formatDateKey(date)),
+                        isToday: i === 0
+                    });
+                }
+                
+                let html = '';
+                recentDays.forEach(dayInfo => {
+                    html += `
+                        <div class="recent-day ${dayInfo.isToday ? 'today' : ''} ${dayInfo.hasEntries ? 'has-entries' : ''}" 
+                             data-date="${this.formatDateKey(dayInfo.date)}">
+                            <span class="day-name">${dayInfo.dayName}</span>
+                            <span class="day-date">${dayInfo.formatted}</span>
+                            ${dayInfo.hasEntries ? '<i class="fas fa-check-circle"></i>' : ''}
+                        </div>
+                    `;
+                });
+                
+                this.elements.recentDaysList.innerHTML = html;
+                
+                // Adicionar eventos
+                this.elements.recentDaysList.querySelectorAll('.recent-day').forEach(day => {
+                    day.addEventListener('click', () => {
+                        const date = new Date(day.dataset.date);
+                        this.selectDate(date);
+                    });
+                });
+            }
+
+            // ========== FUNÇÕES DO EDITOR ==========
+            async loadTodayEntry() {
+                await this.loadEntryForDate(new Date());
+            }
+
+            async loadEntryForDate(date) {
+                const dateKey = this.formatDateKey(date);
+                const entry = await this.getEntryByDate(dateKey);
+                
+                if (this.elements.richEditor) {
+                    this.elements.richEditor.innerHTML = entry?.content || '';
+                }
+                
+                if (entry) {
+                    this.renderChecklist(entry.checklist || []);
+                    this.renderTags(entry.tags || []);
+                    await this.loadAttachments(entry.id);
+                } else {
+                    this.renderChecklist([]);
+                    this.renderTags([]);
+                    this.clearAttachments();
+                }
+            }
+
+            async saveCurrentEntry() {
+                try {
+                    const dateKey = this.formatDateKey(this.state.selectedDate);
+                    const content = this.elements.richEditor?.innerHTML || '';
+                    
+                    const checklistItems = [];
+                    this.elements.checklistItems?.querySelectorAll('.checklist-item').forEach(item => {
+                        const checkbox = item.querySelector('input[type="checkbox"]');
+                        const textElement = item.querySelector('.checklist-text');
+                        
+                        if (checkbox && textElement) {
+                            checklistItems.push({
+                                text: textElement.textContent,
+                                completed: checkbox.checked
+                            });
+                        }
+                    });
+                    
+                    const tags = [];
+                    this.elements.tagsContainer?.querySelectorAll('.tag-text').forEach(tag => {
+                        tags.push(tag.textContent.trim());
+                    });
+                    
+                    const attachments = [];
+                    this.elements.attachmentsGrid?.querySelectorAll('.attachment-item').forEach(item => {
+                        if (item.dataset.id) {
+                            attachments.push(item.dataset.id);
+                        }
+                    });
+                    
+                    const entry = {
+                        id: dateKey,
+                        date: dateKey,
+                        content: content,
+                        checklist: checklistItems,
+                        tags: tags,
+                        attachments: attachments,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    await this.saveEntry(entry);
+                    this.state.entries.set(entry.id, entry);
+                    
+                    tags.forEach(tag => this.state.tags.add(tag));
+                    
+                    this.renderCalendar();
+                    this.loadRecentDays();
+                    
+                    this.showToast('Entrada salva com sucesso!', 'success');
+                    
+                    if (this.state.settings.autoBackup) {
+                        setTimeout(() => this.createBackup(), 1000);
+                    }
+                    
+                } catch (error) {
+                    console.error('Erro ao salvar entrada:', error);
+                    this.showToast('Erro ao salvar entrada', 'error');
+                }
+            }
+
+            async autoSave() {
+                if (!this.elements.richEditor || !this.elements.richEditor.innerHTML.trim()) return;
+                
+                try {
+                    await this.saveCurrentEntry();
+                    console.log('💾 Auto-save realizado');
+                } catch (error) {
+                    console.error('Erro no auto-save:', error);
+                }
+            }
+
+            // ========== CHECKLIST ==========
+            renderChecklist(items) {
+                if (!this.elements.checklistItems) return;
+                
+                this.elements.checklistItems.innerHTML = '';
+                
+                items.forEach((item, index) => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'checklist-item';
+                    itemElement.innerHTML = `
+                        <input type="checkbox" ${item.completed ? 'checked' : ''}>
+                        <span class="checklist-text ${item.completed ? 'completed' : ''}">${item.text}</span>
+                        <button class="delete-checklist"><i class="fas fa-times"></i></button>
+                    `;
+                    
+                    const checkbox = itemElement.querySelector('input[type="checkbox"]');
+                    checkbox.addEventListener('change', () => {
+                        item.completed = checkbox.checked;
+                        itemElement.querySelector('.checklist-text').classList.toggle('completed', checkbox.checked);
+                        this.autoSave();
+                    });
+                    
+                    const deleteBtn = itemElement.querySelector('.delete-checklist');
+                    deleteBtn.addEventListener('click', () => {
+                        items.splice(index, 1);
+                        this.renderChecklist(items);
+                        this.autoSave();
+                    });
+                    
+                    this.elements.checklistItems.appendChild(itemElement);
+                });
+            }
+
+            addChecklistItem() {
+                const input = this.elements.newChecklistItem;
+                if (!input || !input.value.trim()) return;
+                
+                const items = [];
+                this.elements.checklistItems?.querySelectorAll('.checklist-item').forEach(item => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    const textElement = item.querySelector('.checklist-text');
+                    if (checkbox && textElement) {
+                        items.push({
+                            text: textElement.textContent,
+                            completed: checkbox.checked
+                        });
+                    }
+                });
+                
+                items.push({
+                    text: input.value.trim(),
+                    completed: false
+                });
+                
+                this.renderChecklist(items);
+                input.value = '';
+                this.autoSave();
+            }
+
+            showAddChecklistDialog() {
+                const text = prompt('Digite o texto da tarefa:');
+                if (text && text.trim()) {
+                    const input = this.elements.newChecklistItem;
+                    if (input) {
+                        input.value = text;
+                        this.addChecklistItem();
+                    }
+                }
+            }
+
+            // ========== TAGS ==========
+            renderTags(tags) {
+                if (!this.elements.tagsContainer) return;
+                
+                this.elements.tagsContainer.innerHTML = '';
+                
+                tags.forEach((tag, index) => {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'tag';
+                    tagElement.innerHTML = `
+                        <span class="tag-text">${tag}</span>
+                        <button class="delete-tag"><i class="fas fa-times"></i></button>
+                    `;
+                    
+                    const deleteBtn = tagElement.querySelector('.delete-tag');
+                    deleteBtn.addEventListener('click', () => {
+                        tags.splice(index, 1);
+                        this.renderTags(tags);
+                        this.autoSave();
+                    });
+                    
+                    this.elements.tagsContainer.appendChild(tagElement);
+                });
+            }
+
+            showAddTagDialog() {
+                const tag = prompt('Digite uma tag:');
+                if (tag && tag.trim()) {
+                    const tags = [];
+                    this.elements.tagsContainer?.querySelectorAll('.tag-text').forEach(t => {
+                        tags.push(t.textContent.trim());
+                    });
+                    
+                    if (!tags.includes(tag.trim())) {
+                        tags.push(tag.trim());
+                        this.renderTags(tags);
+                        this.autoSave();
+                    }
+                }
+            }
+
+            // ========== ANEXOS ==========
+            async loadAttachments(entryId) {
+                if (!this.elements.attachmentsGrid) return;
+                
+                const attachments = await this.getEntryAttachments(entryId);
+                this.elements.attachmentsGrid.innerHTML = '';
+                
+                attachments.forEach(attachment => {
+                    const element = this.createAttachmentElement(attachment);
+                    this.elements.attachmentsGrid.appendChild(element);
+                });
+            }
+
+            clearAttachments() {
+                if (this.elements.attachmentsGrid) {
+                    this.elements.attachmentsGrid.innerHTML = '';
+                }
+            }
+
+            createAttachmentElement(attachment) {
+                const element = document.createElement('div');
+                element.className = 'attachment-item';
+                element.dataset.id = attachment.id;
+                
+                const icon = this.getFileIcon(attachment.type);
+                const size = this.formatFileSize(attachment.size);
+                
+                element.innerHTML = `
+                    <div class="attachment-icon">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div class="attachment-info">
+                        <span class="attachment-name">${attachment.name}</span>
+                        <span class="attachment-size">${size}</span>
+                    </div>
+                    <button class="attachment-delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                
+                element.addEventListener('click', (e) => {
+                    if (!e.target.closest('.attachment-delete')) {
+                        this.openAttachment(attachment);
+                    }
+                });
+                
+                const deleteBtn = element.querySelector('.attachment-delete');
+                deleteBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Excluir "${attachment.name}"?`)) {
+                        await this.deleteAttachment(attachment.id);
+                        element.remove();
+                        this.autoSave();
+                    }
+                });
+                
+                return element;
+            }
+
+            attachFile() {
+                if (this.elements.fileInput) {
+                    this.elements.fileInput.click();
+                }
+            }
+
+            async handleFileUpload(files) {
+                for (let file of files) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = async (e) => {
+                        const attachment = {
+                            id: Date.now() + Math.random(),
+                            name: file.name,
+                            type: file.type,
+                            size: file.size,
+                            data: e.target.result,
+                            date: this.formatDateKey(this.state.selectedDate),
+                            uploadedAt: new Date().toISOString()
+                        };
+                        
+                        await this.saveAttachment(attachment);
+                        
+                        const element = this.createAttachmentElement(attachment);
+                        if (this.elements.attachmentsGrid) {
+                            this.elements.attachmentsGrid.appendChild(element);
+                        }
+                        
+                        this.autoSave();
+                        this.showToast(`Arquivo "${file.name}" anexado!`, 'success');
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            openAttachment(attachment) {
+                if (attachment.type.startsWith('image/')) {
+                    const img = new Image();
+                    img.src = attachment.data;
+                    img.onload = () => {
+                        const w = window.open('');
+                        w.document.write(`<img src="${attachment.data}" style="max-width: 100%;">`);
+                    };
+                } else {
+                    const link = document.createElement('a');
+                    link.href = attachment.data;
+                    link.download = attachment.name;
+                    link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+
+            // ========== EXPORTAÇÃO PDF ==========
+            async exportToPDF() {
+                try {
+                    this.showToast('Gerando PDF...', 'info');
+                    
+                    const dateKey = this.formatDateKey(this.state.selectedDate);
+                    const entry = this.state.entries.get(dateKey);
+                    
+                    if (!entry) {
+                        this.showToast('Nenhuma entrada para exportar', 'warning');
+                        return;
+                    }
+                    
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+                    
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                    const margin = 15;
+                    const quality = parseInt(this.state.settings.pdfQuality || 80);
+                    const contentHeight = (pageHeight - (2 * margin)) * (quality / 100);
+                    
+                    // Cabeçalho
+                    pdf.setFillColor(102, 126, 234);
+                    pdf.roundedRect(margin, margin, pageWidth - (2 * margin), 25, 3, 3, 'F');
+                    
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.setFontSize(18);
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.text('Agenda Organizacional', margin + 10, margin + 10);
+                    
+                    pdf.setFontSize(12);
+                    pdf.setFont('helvetica', 'normal');
+                    
+                    const dateStr = this.state.selectedDate.toLocaleDateString('pt-BR', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    pdf.text(dateStr, margin + 10, margin + 18);
+                    
+                    // Conteúdo
+                    let yPosition = margin + 35;
+                    
+                    if (entry.tags && entry.tags.length > 0) {
+                        pdf.setFontSize(10);
+                        pdf.setTextColor(118, 75, 162);
+                        pdf.text('Tags: ' + entry.tags.join(', '), margin, yPosition);
+                        yPosition += 8;
+                    }
+                    
+                    pdf.setFontSize(11);
+                    pdf.setTextColor(0, 0, 0);
+                    pdf.setFont('helvetica', 'normal');
+                    
+                    const content = this.cleanHTML(entry.content);
+                    const lines = pdf.splitTextToSize(content, pageWidth - (2 * margin));
+                    
+                    for (let line of lines) {
+                        if (yPosition > margin + contentHeight) {
+                            pdf.addPage();
+                            yPosition = margin;
+                        }
+                        pdf.text(line, margin, yPosition);
+                        yPosition += 6;
+                    }
+                    
+                    // Checklist
+                    if (entry.checklist && entry.checklist.length > 0) {
+                        yPosition += 10;
+                        pdf.setFontSize(12);
+                        pdf.setTextColor(102, 126, 234);
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.text('Checklist:', margin, yPosition);
+                        yPosition += 8;
+                        
+                        pdf.setFontSize(11);
+                        pdf.setTextColor(0, 0, 0);
+                        pdf.setFont('helvetica', 'normal');
+                        
+                        entry.checklist.forEach(item => {
+                            const check = item.completed ? '✓' : '□';
+                            const text = ` ${item.text}`;
+                            
+                            if (yPosition > margin + contentHeight) {
+                                pdf.addPage();
+                                yPosition = margin;
+                            }
+                            
+                            pdf.text(check + text, margin + 5, yPosition);
+                            yPosition += 6;
+                        });
+                    }
+                    
+                    // Rodapé
+                    const totalPages = pdf.internal.getNumberOfPages();
+                    for (let i = 1; i <= totalPages; i++) {
+                        pdf.setPage(i);
+                        pdf.setFontSize(9);
+                        pdf.setTextColor(150, 150, 150);
+                        pdf.text(
+                            `Página ${i} de ${totalPages}`,
+                            pageWidth - margin - 20,
+                            pageHeight - margin + 5
+                        );
+                        
+                        pdf.text(
+                            `Exportado em: ${new Date().toLocaleDateString('pt-BR')}`,
+                            margin,
+                            pageHeight - margin + 5
+                        );
+                    }
+                    
+                    pdf.save(`agenda-${dateKey}.pdf`);
+                    this.showToast('PDF exportado com sucesso!', 'success');
+                    
+                } catch (error) {
+                    console.error('Erro ao exportar PDF:', error);
+                    this.showToast('Erro ao exportar PDF', 'error');
+                }
+            }
+
+            // ========== BACKUP ==========
+            async createBackup() {
+                try {
+                    this.showToast('Criando backup...', 'info');
+                    
+                    const backup = {
+                        id: Date.now(),
+                        timestamp: new Date().toISOString(),
+                        type: 'manual',
+                        entries: Array.from(this.state.entries.values()),
+                        settings: this.state.settings,
+                        appVersion: '1.0.0'
+                    };
+                    
+                    await this.saveBackup(backup);
+                    await this.updateBackupHistory();
+                    
+                    this.showToast('Backup criado com sucesso!', 'success');
+                    
+                } catch (error) {
+                    console.error('Erro ao criar backup:', error);
+                    this.showToast('Erro ao criar backup', 'error');
+                }
+            }
+
+            async updateBackupHistory() {
+                if (!this.elements.backupHistory) return;
+                
+                const backups = await this.getBackups();
+                backups.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                if (backups.length === 0) {
+                    this.elements.backupHistory.innerHTML = '<p class="no-backups">Nenhum backup realizado</p>';
+                    return;
+                }
+                
+                let html = '';
+                backups.slice(0, 5).forEach(backup => {
+                    const date = new Date(backup.timestamp);
+                    const dateStr = date.toLocaleDateString('pt-BR');
+                    const timeStr = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    
+                    html += `
+                        <div class="backup-history-item">
+                            <div class="backup-info">
+                                <span class="backup-date">${dateStr} ${timeStr}</span>
+                                <span class="backup-size">${this.formatFileSize(JSON.stringify(backup).length)}</span>
+                            </div>
+                            <button class="restore-backup" data-id="${backup.id}">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                this.elements.backupHistory.innerHTML = html;
+                
+                this.elements.backupHistory.querySelectorAll('.restore-backup').forEach(button => {
+                    button.addEventListener('click', async (e) => {
+                        const backupId = parseInt(e.currentTarget.dataset.id);
+                        await this.restoreBackup(backupId);
+                    });
+                });
+            }
+
+            async restoreBackup(backupId) {
+                if (!confirm('Restaurar este backup substituirá os dados atuais. Continuar?')) {
+                    return;
+                }
+                
+                try {
+                    this.showToast('Restaurando backup...', 'info');
+                    const backup = await this.getBackup(backupId);
+                    
+                    if (!backup) {
+                        throw new Error('Backup não encontrado');
+                    }
+                    
+                    // Limpar entradas atuais
+                    this.state.entries.clear();
+                    
+                    // Restaurar entradas
+                    if (backup.entries && Array.isArray(backup.entries)) {
+                        for (const entry of backup.entries) {
+                            await this.saveEntry(entry);
+                            this.state.entries.set(entry.id, entry);
+                        }
+                    }
+                    
+                    // Restaurar configurações
+                    if (backup.settings) {
+                        this.state.settings = { ...this.state.settings, ...backup.settings };
+                        this.saveSettings();
+                        this.applyTheme(this.state.settings.theme);
+                    }
+                    
+                    this.showToast('Backup restaurado com sucesso!', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                    
+                } catch (error) {
+                    console.error('Erro ao restaurar backup:', error);
+                    this.showToast('Erro ao restaurar backup', 'error');
+                }
+            }
+
+            async exportToJSON() {
+                try {
+                    const data = {
+                        exportedAt: new Date().toISOString(),
+                        appVersion: '1.0.0',
+                        entries: Array.from(this.state.entries.values()),
+                        settings: this.state.settings,
+                        stats: {
+                            totalEntries: this.state.entries.size,
+                            totalTags: this.state.tags.size
+                        }
+                    };
+                    
+                    const jsonStr = JSON.stringify(data, null, 2);
+                    const blob = new Blob([jsonStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `agenda-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    URL.revokeObjectURL(url);
+                    
+                    this.showToast('Exportação JSON concluída!', 'success');
+                    
+                } catch (error) {
+                    console.error('Erro ao exportar JSON:', error);
+                    this.showToast('Erro ao exportar JSON', 'error');
+                }
+            }
+
+            async exportToCSV() {
+                try {
+                    let csvContent = 'Data,Conteúdo,Tags,Checklist Concluído/Total,Anexos\n';
+                    
+                    const entries = Array.from(this.state.entries.values())
+                        .sort((a, b) => a.date.localeCompare(b.date));
+                    
+                    for (const entry of entries) {
+                        const content = this.cleanHTML(entry.content)
+                            .replace(/,/g, ' ')
+                            .replace(/\n/g, ' ')
+                            .trim();
+                        
+                        const tags = entry.tags ? entry.tags.join('; ') : '';
+                        
+                        let checklistInfo = '0/0';
+                        if (entry.checklist && entry.checklist.length > 0) {
+                            const completed = entry.checklist.filter(item => item.completed).length;
+                            checklistInfo = `${completed}/${entry.checklist.length}`;
+                        }
+                        
+                        const attachments = entry.attachments ? entry.attachments.length : 0;
+                        
+                        csvContent += `"${entry.date}","${content}","${tags}","${checklistInfo}","${attachments}"\n`;
+                    }
+                    
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `agenda-export-${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    URL.revokeObjectURL(url);
+                    
+                    this.showToast('Exportação CSV concluída!', 'success');
+                    
+                } catch (error) {
+                    console.error('Erro ao exportar CSV:', error);
+                    this.showToast('Erro ao exportar CSV', 'error');
+                }
+            }
+
+            async importData() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json,.csv';
+                
+                input.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    
+                    try {
+                        const text = await file.text();
+                        
+                        if (file.name.endsWith('.json')) {
+                            await this.importFromJSON(text);
+                        } else if (file.name.endsWith('.csv')) {
+                            await this.importFromCSV(text);
+                        }
+                        
+                    } catch (error) {
+                        console.error('Erro ao importar dados:', error);
+                        this.showToast('Erro ao importar dados', 'error');
+                    }
+                };
+                
+                input.click();
+            }
+
+            async importFromJSON(jsonString) {
+                const data = JSON.parse(jsonString);
+                
+                if (!data.entries || !Array.isArray(data.entries)) {
+                    throw new Error('Formato de arquivo inválido');
+                }
+                
+                if (!confirm(`Importar ${data.entries.length} entradas?`)) {
+                    return;
+                }
+                
+                this.showToast('Importando dados...', 'info');
+                
+                for (const entry of data.entries) {
+                    await this.saveEntry(entry);
+                    this.state.entries.set(entry.id, entry);
+                }
+                
+                await this.loadTodayEntry();
+                this.renderCalendar();
+                
+                this.showToast(`${data.entries.length} entradas importadas!`, 'success');
+            }
+
+            async importFromCSV(csvString) {
+                const lines = csvString.split('\n');
+                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                
+                let importedCount = 0;
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const values = this.parseCSVLine(line);
+                    
+                    if (values.length >= 1) {
+                        const date = values[0].replace(/"/g, '');
+                        const content = values[1] ? values[1].replace(/"/g, '') : '';
+                        
+                        const entry = {
+                            id: date,
+                            date: date,
+                            content: content,
+                            checklist: [],
+                            tags: [],
+                            attachments: [],
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString()
+                        };
+                        
+                        await this.saveEntry(entry);
+                        this.state.entries.set(entry.id, entry);
+                        importedCount++;
+                    }
+                }
+                
+                this.showToast(`${importedCount} entradas importadas do CSV!`, 'success');
+            }
+
+            // ========== FUNÇÕES UTILITÁRIAS ==========
+            formatDateKey(date) {
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+
+            isSameDay(date1, date2) {
+                return date1.getDate() === date2.getDate() &&
+                       date1.getMonth() === date2.getMonth() &&
+                       date1.getFullYear() === date2.getFullYear();
+            }
+
+            hasEntriesForDate(dateKey) {
+                return this.state.entries.has(dateKey);
+            }
+
+            getDayName(dayIndex) {
+                const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+                return dayNames[dayIndex];
+            }
+
+            cleanHTML(html) {
+                if (!html) return '';
+                return html
+                    .replace(/<br\s*\/?>/gi, '\n')
+                    .replace(/<p>/gi, '\n')
+                    .replace(/<\/p>/gi, '\n')
+                    .replace(/<[^>]*>/g, '')
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/\n\s*\n\s*\n/g, '\n\n')
+                    .trim();
+            }
+
+            getFileIcon(mimeType) {
+                if (mimeType.startsWith('image/')) return 'fa-image';
+                if (mimeType.includes('pdf')) return 'fa-file-pdf';
+                if (mimeType.includes('word')) return 'fa-file-word';
+                if (mimeType.includes('excel')) return 'fa-file-excel';
+                if (mimeType.includes('powerpoint')) return 'fa-file-powerpoint';
+                if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('tar')) return 'fa-file-archive';
+                if (mimeType.startsWith('text/')) return 'fa-file-alt';
+                return 'fa-file';
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            parseCSVLine(line) {
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let char of line) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current);
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                
+                values.push(current);
+                return values;
+            }
+
+            showToast(message, type = 'info') {
+                if (!this.elements.toastContainer) return;
+                
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${type}`;
+                
+                const icons = {
+                    success: 'fa-check-circle',
+                    error: 'fa-exclamation-circle',
+                    warning: 'fa-exclamation-triangle',
+                    info: 'fa-info-circle'
+                };
+                
+                toast.innerHTML = `
+                    <i class="fas ${icons[type] || icons.info}"></i>
+                    <span>${message}</span>
+                `;
+                
+                this.elements.toastContainer.appendChild(toast);
+                
+                setTimeout(() => toast.classList.add('show'), 10);
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            applyTheme(theme) {
+                document.body.classList.remove('light-theme', 'dark-theme');
+                document.body.classList.add(`${theme}-theme`);
+                this.state.ui.theme = theme;
+                this.state.settings.theme = theme;
+                this.saveSettings();
+                
+                if (this.elements.themeToggle) {
+                    const icon = this.elements.themeToggle.querySelector('i');
+                    if (icon) {
+                        icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                    }
+                }
+            }
+
+            toggleSidebar() {
+                if (!this.elements.sidebar) return;
+                
+                this.state.ui.sidebarOpen = !this.state.ui.sidebarOpen;
+                this.elements.sidebar.classList.toggle('collapsed', !this.state.ui.sidebarOpen);
+                
+                const icon = this.elements.menuToggle?.querySelector('i');
+                if (icon) {
+                    icon.className = this.state.ui.sidebarOpen ? 'fas fa-bars' : 'fas fa-times';
+                }
+            }
+
+            openSearch() {
+                if (!this.elements.searchModal) return;
+                
+                this.elements.searchModal.classList.add('active');
+                this.elements.searchInput?.focus();
+                
+                const closeModal = () => {
+                    this.elements.searchModal.classList.remove('active');
+                };
+                
+                this.elements.searchModal.querySelector('.close-modal')?.addEventListener('click', closeModal, { once: true });
+                this.elements.searchModal.addEventListener('click', (e) => {
+                    if (e.target === this.elements.searchModal) {
+                        closeModal();
+                    }
+                }, { once: true });
+                
+                this.elements.searchInput?.addEventListener('input', async (e) => {
+                    const query = e.target.value.trim();
+                    if (query.length >= 2) {
+                        await this.performSearch(query);
+                    } else {
+                        this.elements.searchResults.innerHTML = '';
+                    }
+                });
+            }
+
+            async performSearch(query) {
+                if (!this.elements.searchResults) return;
+                
+                const results = [];
+                const searchLower = query.toLowerCase();
+                
+                for (const [id, entry] of this.state.entries) {
+                    if (entry.content.toLowerCase().includes(searchLower) ||
+                        (entry.tags && entry.tags.some(tag => tag.toLowerCase().includes(searchLower))) ||
+                        (entry.checklist && entry.checklist.some(item => item.text.toLowerCase().includes(searchLower)))) {
+                        
+                        const preview = this.cleanHTML(entry.content).substring(0, 150) + '...';
+                        results.push({
+                            date: entry.date,
+                            preview: preview,
+                            tags: entry.tags || []
+                        });
+                    }
+                }
+                
+                this.displaySearchResults(results);
+            }
+
+            displaySearchResults(results) {
+                if (!this.elements.searchResults) return;
+                
+                if (results.length === 0) {
+                    this.elements.searchResults.innerHTML = '<p class="no-results">Nenhum resultado encontrado</p>';
+                    return;
+                }
+                
+                let html = '';
+                results.forEach(result => {
+                    const date = new Date(result.date);
+                    const dateStr = date.toLocaleDateString('pt-BR');
+                    
+                    html += `
+                        <div class="search-result" data-date="${result.date}">
+                            <h4>${dateStr}</h4>
+                            <p class="preview">${result.preview}</p>
+                            ${result.tags.length > 0 ? `<div class="tags">${result.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+                        </div>
+                    `;
+                });
+                
+                this.elements.searchResults.innerHTML = html;
+                
+                this.elements.searchResults.querySelectorAll('.search-result').forEach(result => {
+                    result.addEventListener('click', () => {
+                        const date = new Date(result.dataset.date);
+                        this.selectDate(date);
+                        this.elements.searchModal.classList.remove('active');
+                    });
+                });
+            }
+
+            async updateStorageInfo() {
+                if (!('storage' in navigator && 'estimate' in navigator.storage)) return;
+                
+                try {
+                    const estimate = await navigator.storage.estimate();
+                    const usedMB = (estimate.usage / (1024 * 1024)).toFixed(2);
+                    const quotaMB = (estimate.quota / (1024 * 1024)).toFixed(2);
+                    const percentage = Math.min(100, (estimate.usage / estimate.quota * 100)).toFixed(1);
+                    
+                    if (this.elements.storageText) {
+                        this.elements.storageText.textContent = `${usedMB} MB usados de ${quotaMB} MB`;
+                    }
+                    
+                    if (this.elements.storageProgress) {
+                        this.elements.storageProgress.style.width = `${percentage}%`;
+                    }
+                    
+                } catch (error) {
+                    console.error('Erro ao obter informações de armazenamento:', error);
+                }
+            }
+
+            loadSettings() {
+                const defaults = {
+                    theme: 'light',
+                    autoBackup: true,
+                    notifications: true,
+                    pdfQuality: '80',
+                    appVersion: '1.0.0'
+                };
+                
+                try {
+                    const saved = localStorage.getItem('agendaSettings');
+                    if (saved) {
+                        return { ...defaults, ...JSON.parse(saved) };
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar configurações:', error);
+                }
+                
+                return defaults;
+            }
+
+            saveSettings() {
+                try {
+                    localStorage.setItem('agendaSettings', JSON.stringify(this.state.settings));
+                } catch (error) {
+                    console.error('Erro ao salvar configurações:', error);
+                }
+            }
+
+            // ========== FUNÇÕES DO BANCO DE DADOS ==========
+            async getEntryByDate(dateKey) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.state.db.transaction(['entries'], 'readonly');
+                    const store = transaction.objectStore('entries');
+                    const request = store.get(dateKey);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async getEntriesByDateRange(startDate, endDate) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.state.db.transaction(['entries'], 'readonly');
+                    const store = transaction.objectStore('entries');
+                    const index = store.index('date');
+                    const range = IDBKeyRange.bound(
+                        this.formatDateKey(startDate),
+                        this.formatDateKey(endDate)
+                    );
+                    const request = index.getAll(range);
+                    
+                    request.onsuccess = () => resolve(request.result || []);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async saveEntry(entry) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.state.db.transaction(['entries'], 'readwrite');
+                    const store = transaction.objectStore('entries');
+                    const request = store.put(entry);
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async getEntryAttachments(entryId) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.state.db.transaction(['files'], 'readonly');
+                    const store = transaction.objectStore('files');
+                    const index = store.index('date');
+                    const request = index.getAll(entryId);
+                    
+                    request.onsuccess = () => resolve(request.result || []);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async saveAttachment(attachment) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.state.db.transaction(['files'], 'readwrite');
+                    const store = transaction.objectStore('files');
+                    const request = store.add(attachment);
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async deleteAttachment(attachmentId) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.state.db.transaction(['files'], 'readwrite');
+                    const store = transaction.objectStore('files');
+                    const request = store.delete(attachmentId);
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async saveBackup(backup) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.state.db.transaction(['backups'], 'readwrite');
+                    const store = transaction.objectStore('backups');
+                    const request = store.add(backup);
+                    
+                    request.onsuccess = () => resolve();
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async getBackups() {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.state.db.transaction(['backups'], 'readonly');
+                    const store = transaction.objectStore('backups');
+                    const request = store.getAll();
+                    
+                    request.onsuccess = () => resolve(request.result || []);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            async getBackup(id) {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.state.db.transaction(['backups'], 'readonly');
+                    const store = transaction.objectStore('backups');
+                    const request = store.get(id);
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+
+            // ========== SERVICE WORKER E PWA ==========
+            async setupServiceWorker() {
+                if ('serviceWorker' in navigator) {
+                    try {
+                        await navigator.serviceWorker.register('service-worker.js');
+                        console.log('👷 Service Worker registrado');
+                    } catch (error) {
+                        console.error('❌ Falha ao registrar Service Worker:', error);
+                    }
+                }
+            }
+
+            setupPWAInstall() {
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    this.deferredPrompt = e;
+                    
+                    if (this.elements.installPrompt) {
+                        this.elements.installPrompt.style.display = 'flex';
+                    }
+                });
+                
+                this.elements.installBtn?.addEventListener('click', () => this.installPWA());
+                this.elements.dismissInstall?.addEventListener('click', () => {
+                    if (this.elements.installPrompt) {
+                        this.elements.installPrompt.style.display = 'none';
+                    }
+                });
+            }
+
+            async installPWA() {
+                if (!this.deferredPrompt) return;
+                
+                this.deferredPrompt.prompt();
+                const { outcome } = await this.deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('📱 PWA instalado');
+                    this.showToast('Aplicativo instalado com sucesso!', 'success');
+                }
+                
+                if (this.elements.installPrompt) {
+                    this.elements.installPrompt.style.display = 'none';
+                }
+                
+                this.deferredPrompt = null;
+            }
+        }
+
+        // ========== INICIALIZAÇÃO DA APLICAÇÃO ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            window.agendaApp = new AgendaApp();
+            
+            // Atalhos de teclado
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch (e.key) {
+                        case 's':
+                            e.preventDefault();
+                            window.agendaApp.saveCurrentEntry();
+                            break;
+                        case 'f':
+                            e.preventDefault();
+                            window.agendaApp.openSearch();
+                            break;
+                        case 'e':
+                            e.preventDefault();
+                            window.agendaApp.exportToPDF();
+                            break;
+                        case 'b':
+                            e.preventDefault();
+                            window.agendaApp.createBackup();
+                            break;
+                    }
+                }
+                
+                if (e.key === 'Escape') {
+                    const modals = document.querySelectorAll('.modal.active');
+                    modals.forEach(modal => modal.classList.remove('active'));
+                }
+            });
+            
+            // Prevenir perda de dados
+            window.addEventListener('beforeunload', (e) => {
+                if (window.agendaApp && window.agendaApp.elements.richEditor?.innerHTML.trim()) {
+                    e.preventDefault();
+                    e.returnValue = 'Você tem alterações não salvas. Tem certeza que deseja sair?';
+                    return e.returnValue;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
